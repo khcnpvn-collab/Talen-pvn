@@ -1,21 +1,41 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from './services/supabaseClient';
 import LoginPage from './components/LoginPage';
 import MainPortal from './components/MainPortal';
 
 const App: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      setLoading(false);
+    };
 
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-  };
+    getSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+      }
+    );
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
+  if (loading) {
+    return null; // Or a loading spinner
+  }
 
   return (
     <>
-      {isLoggedIn ? <MainPortal onLogout={handleLogout} /> : <LoginPage onLogin={handleLogin} />}
+      {session ? <MainPortal session={session} /> : <LoginPage />}
     </>
   );
 };

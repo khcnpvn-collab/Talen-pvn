@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
+import { Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabaseClient';
 
 interface ProblemStatementModalProps {
+    session: Session;
     onClose: () => void;
 }
 
-const ProblemStatementModal: React.FC<ProblemStatementModalProps> = ({ onClose }) => {
+const ProblemStatementModal: React.FC<ProblemStatementModalProps> = ({ session, onClose }) => {
     const [problem, setProblem] = useState('');
     const [statement, setStatement] = useState('');
     const [file, setFile] = useState<File | null>(null);
@@ -35,7 +37,7 @@ const ProblemStatementModal: React.FC<ProblemStatementModalProps> = ({ onClose }
             let attachmentPath: string | null = null;
             if (file) {
                 const fileExt = file.name.split('.').pop();
-                const fileName = `${Math.random()}.${fileExt}`;
+                const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
                 const filePath = `public/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
@@ -50,7 +52,12 @@ const ProblemStatementModal: React.FC<ProblemStatementModalProps> = ({ onClose }
 
             const { error: insertError } = await supabase
                 .from('problem_statements')
-                .insert([{ problem, statement, attachment_path: attachmentPath }]);
+                .insert([{ 
+                    problem, 
+                    statement, 
+                    attachment_path: attachmentPath,
+                    user_id: session.user.id 
+                }]);
 
             if (insertError) {
                 throw insertError;

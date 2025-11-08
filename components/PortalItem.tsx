@@ -1,18 +1,23 @@
 
 import React from 'react';
 
+type Page = 'grid' | 'documents' | 'admin';
+
 interface PortalItemProps {
     title: string;
     icon: React.ReactNode;
-    action?: { type: 'link'; href: string } | { type: 'modal' };
+    action?: { type: 'link'; href: string } | { type: 'modal' } | { type: 'navigate'; page: Page };
     openProblemStatementModal: () => void;
+    onNavigate: (page: Page) => void;
 }
 
-const PortalItem: React.FC<PortalItemProps> = ({ title, icon, action, openProblemStatementModal }) => {
+const PortalItem: React.FC<PortalItemProps> = ({ title, icon, action, openProblemStatementModal, onNavigate }) => {
     
     const handleClick = () => {
         if (action?.type === 'modal') {
             openProblemStatementModal();
+        } else if (action?.type === 'navigate') {
+            onNavigate(action.page);
         }
     };
 

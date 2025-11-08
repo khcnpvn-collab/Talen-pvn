@@ -1,10 +1,13 @@
+
 import React from 'react';
+import { Session } from '@supabase/supabase-js';
 
 interface HeaderProps {
+  session: Session;
   onLogout: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onLogout }) => {
+const Header: React.FC<HeaderProps> = ({ session, onLogout }) => {
   return (
     <header className="bg-white shadow-md">
       <div>
@@ -31,8 +34,8 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
             </div>
             <div className="flex items-center ml-6">
                <div className="flex items-center">
-                  <span className="mr-4 text-white font-medium">Nhân tài PVN</span>
-                  <img className="h-10 w-10 rounded-full" src="https://i.pravatar.cc/150?u=pvn-talent" alt="User avatar" />
+                  <span className="mr-4 text-white font-medium truncate" title={session.user.email}>{session.user.email}</span>
+                  <img className="h-10 w-10 rounded-full" src={`https://i.pravatar.cc/150?u=${session.user.id}`} alt="User avatar" />
                </div>
               <button
                 onClick={onLogout}

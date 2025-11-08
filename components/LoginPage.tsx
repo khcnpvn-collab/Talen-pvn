@@ -1,14 +1,11 @@
+
 import React, { useState } from 'react';
+import { supabase } from '../services/supabaseClient';
 import TalentDefinitionModal from './TalentDefinitionModal';
 import TalentTicker from './TalentTicker';
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
 const HexagonImage: React.FC<{ src: string; label: string }> = ({ src, label }) => (
   <div className="relative group w-48 h-56 mx-auto">
-    {/* Ảnh + clip hexagon */}
     <div
       className="absolute inset-0 bg-cover bg-center transition-transform duration-300 group-hover:scale-110"
       style={{ 
@@ -16,8 +13,6 @@ const HexagonImage: React.FC<{ src: string; label: string }> = ({ src, label }) 
         clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)'
       }}
     ></div>
-
-    {/* Overlay + label căn giữa */}
     <div
       className="absolute inset-0 flex items-center justify-center"
       style={{ 
@@ -32,14 +27,27 @@ const HexagonImage: React.FC<{ src: string; label: string }> = ({ src, label }) 
   </div>
 );
 
-const LoginPage: React.FC<LoginProps> = ({ onLogin }) => {
+const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin();
+    setLoading(true);
+    setError(null);
+    
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+    }
+    setLoading(false);
   };
 
   return (
@@ -114,6 +122,8 @@ const LoginPage: React.FC<LoginProps> = ({ onLogin }) => {
                   className="mt-1 block w-full bg-white/10 border border-white/20 rounded-md shadow-sm py-2 px-3 text-white focus:outline-none focus:ring-amber-500 focus:border-amber-500"
                 />
               </div>
+              
+              {error && <p className="text-sm text-red-400">{error}</p>}
 
               <div className="pt-4">
                 <TalentTicker />
@@ -121,9 +131,10 @@ const LoginPage: React.FC<LoginProps> = ({ onLogin }) => {
 
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:ring-offset-gray-800"
+                disabled={loading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-amber-600 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 focus:ring-offset-gray-800 disabled:bg-amber-800"
               >
-                Đăng nhập
+                {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
             </form>
 
